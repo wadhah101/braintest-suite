@@ -38,14 +38,14 @@ class FunctionalTestRunner:
             print("[functionaltest] 'functionaltest' section is missing or invalid.")
             functional_cfg = {}
 
-        api_url = braintrust_cfg.get("api_url")
+        api_url = os.getenv("BRAINTRUST_API_URL") or braintrust_cfg.get("api_url")
         self._api_base_url = ""
         if isinstance(api_url, str):
             self._api_base_url = api_url.rstrip("/")
             if self._api_base_url.endswith("/v1"):
                 self._api_base_url = self._api_base_url[:-3]
         else:
-            print("[functionaltest] Missing required config 'braintrust.api_url'.")
+            print("[functionaltest] Missing required config 'braintrust.api_url' or env var BRAINTRUST_API_URL.")
 
         self._project_name_base = braintrust_cfg.get("project_name")
         if not self._project_name_base:
@@ -62,6 +62,9 @@ class FunctionalTestRunner:
                 "[functionaltest] Missing config 'functionaltest.name_prefix'. "
                 "Using default: functional-test"
             )
+
+        xfail_raw = functional_cfg.get("xfail_calls", [])
+        self._xfail_calls: set[str] = set(xfail_raw) if isinstance(xfail_raw, list) else set()
 
         api_key = os.getenv("BRAINTRUST_API_KEY")
         self._headers = {
@@ -102,7 +105,7 @@ class FunctionalTestRunner:
             self._cleanup_resources()
             self._print_summary()
 
-        return not any(record.status == "FAIL" for record in self._records)
+        return not any(record.status == "FAIL" for record in self._records)  # XFAIL does not count
 
     def _run_core_sequence(self) -> None:
         self._create_and_read_project()
@@ -767,11 +770,12 @@ class FunctionalTestRunner:
                 if getattr(exc, "response", None) is not None
                 else None
             )
+            status = "XFAIL" if call in self._xfail_calls else "FAIL"
             self._record(
                 call=call,
                 method=method,
                 endpoint=full_endpoint,
-                status="FAIL",
+                status=status,
                 status_code=status_code,
                 details=self._format_exception(exc),
             )
@@ -881,12 +885,14 @@ class FunctionalTestRunner:
         ]
         passed = [record for record in attempted if record.status == "PASS"]
         failed = [record for record in attempted if record.status == "FAIL"]
+        xfailed = [record for record in self._records if record.status == "XFAIL"]
         skipped = [record for record in self._records if record.status == "SKIPPED"]
 
         pass_rate = (len(passed) / len(attempted) * 100) if attempted else 0.0
         print("\n-----Summary-----")
         print(f"Passed calls: {len(passed)}")
         print(f"Failed calls: {len(failed)}")
+        print(f"Expected failures (xfail): {len(xfailed)}")
         print(f"Skipped calls: {len(skipped)}")
         print(f"Pass rate: {pass_rate:.2f}%")
 

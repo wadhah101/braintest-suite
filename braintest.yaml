@@ -1,10 +1,12 @@
 braintrust:
   project_name: load-testing-project
-  api_url: https://api.braintrust.dev
+  api_url: https://api.braintrust.dev # Can be overridden by the BRAINTRUST_API_URL env var (e.g. for data plane URLs)
 
 functionaltest:
   run: True # Whether or not to run this test
   name_prefix: functional-test # Prefix used when creating test resources
+  xfail_calls: # API calls expected to fail (marked XFAIL instead of FAIL, do not affect pass rate)
+    - "Create API key" # Braintrust API does not support creating API keys programmatically
 
 evaltest:
   run: True # Whether or not to run this test

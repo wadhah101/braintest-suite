@@ -50,5 +50,14 @@ Each test is highly configurable via the `braintest.yaml` config file. The tests
    nohup python main.py > loadtest.out 2>&1 &
    ```
 
+## Environment Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `BRAINTRUST_API_KEY` | Yes | API key for authenticating with the Braintrust API. |
+| `BRAINTRUST_API_URL` | No | Overrides `braintrust.api_url` from `braintest.yaml`. Use this to point directly at a data plane URL. When set, all test requests go to this URL instead of the default control plane, avoiding 421 `DataPlaneRedirectError` responses. |
+
+Set these in a `.env` file (see `example.env`) or export them in your shell.
+
 ## Important Notes
 - No actual LLM calls are made in any of these tests. Everything is mocked. The purpose is to load test Braintrust infra, not the LLM provider.
