@@ -70,9 +70,9 @@ braintest --config-file custom.yaml run loadtest
 Each test suite is also runnable as a standalone Python module:
 
 ```bash
-python -m functional_test
-python -m evaltest
-python -m loadtest
+python -m braintest_suite.functional_test
+python -m braintest_suite.evaltest
+python -m braintest_suite.loadtest
 ```
 
 If you are running over SSH on a remote server, use `nohup` so the test keeps running if your session disconnects:
