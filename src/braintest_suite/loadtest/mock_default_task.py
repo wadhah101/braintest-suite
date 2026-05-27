@@ -18,15 +18,12 @@ def _build_response_pool(pool_size: int, max_tokens: int) -> list:
     for _ in range(pool_size):
         num_sentences = max(1, int(base_sentences * random.uniform(0.8, 1.2)))
         text = fake.paragraph(nb_sentences=num_sentences)
-        pool.append(
-            {
-                "output_size": len(text),
-                "num_sentences": num_sentences,
-                "llm_response": text,
-            }
-        )
+        pool.append({
+            "output_size": len(text),
+            "num_sentences": num_sentences,
+            "llm_response": text,
+        })
     return pool
-
 
 print(f"Generating response pool messages")
 _RESPONSE_POOL = _build_response_pool(
@@ -41,23 +38,17 @@ def _mock_llm() -> dict:
     span = current_span()
     max_tokens = config["loadtest"]["params"]["max_tokens"]
     output = random.choice(_RESPONSE_POOL)
-    input_data = {
-        "prompt": "Generate a mock llm response",
-        "input_max_tokens": max_tokens,
-    }
+    input_data = {"prompt": "Generate a mock llm response", "input_max_tokens": max_tokens}
 
     if output["output_size"] > MAX_SPAN_SIZE:
         span.log(
             input=input_data,
-            output=JSONAttachment(
-                data=output, filename="llm_response.json", pretty=True
-            ),
+            output=JSONAttachment(data=output, filename="llm_response.json", pretty=True),
         )
     else:
         span.log(input=input_data, output=output)
 
     return output
-
 
 @traced
 def _mock_classify_query(query: str) -> dict:
@@ -340,9 +331,9 @@ if __name__ == "__main__":
 
     for i in range(50):
         query = random.choice(query_templates)()
-        print(f"\n{'=' * 60}")
-        print(f"Query {i + 1}: {query}")
-        print(f"{'=' * 60}")
+        print(f"\n{'='*60}")
+        print(f"Query {i+1}: {query}")
+        print(f"{'='*60}")
 
         response = mock_answer_question(query)
         print(f"Response length: {response.get('output_size', 0)} characters")

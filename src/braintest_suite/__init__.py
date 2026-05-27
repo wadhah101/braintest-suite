@@ -2,7 +2,6 @@
 """
 CLI tool to run Braintest test suites: functional tests, eval tests, and load tests.
 """
-
 import sys
 
 import click
@@ -144,6 +143,7 @@ def list_suites():
     click.echo("Available test suites:\n")
     for name, description in AVAILABLE_SUITES.items():
         click.echo(f"  {name:<15} {description}")
+
 
 
 main = cli

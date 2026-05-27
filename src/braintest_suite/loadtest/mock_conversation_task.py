@@ -8,7 +8,7 @@ from braintest_suite.config import load_config
 
 fake = Faker()
 
-MAX_SPAN_SIZE = 3 * 1024 * 1024  # Above this will upload as attachment
+MAX_SPAN_SIZE = 3 * 1024 * 1024 # Above this will upload as attachment
 
 _TOOL_DEFINITIONS = [
     {
@@ -71,15 +71,12 @@ def _build_response_pool(pool_size: int, max_tokens: int) -> list:
     for _ in range(pool_size):
         num_sentences = max(1, int(base_sentences * random.uniform(0.8, 1.2)))
         text = fake.paragraph(nb_sentences=num_sentences)
-        pool.append(
-            {
-                "content": text,
-                "num_sentences": num_sentences,
-                "output_size": len(text),
-            }
-        )
+        pool.append({
+            "content": text,
+            "num_sentences": num_sentences,
+            "output_size": len(text),
+        })
     return pool
-
 
 print(f"Building faker message response pool to optimize")
 _RESPONSE_POOL = _build_response_pool(
@@ -94,11 +91,7 @@ def _mock_tool_execution(tool_name: str, arguments: dict) -> dict:
     if tool_name == "search_knowledge_base":
         return {
             "results": [
-                {
-                    "id": fake.uuid4(),
-                    "content": fake.paragraph(),
-                    "score": round(random.uniform(0.6, 0.99), 3),
-                }
+                {"id": fake.uuid4(), "content": fake.paragraph(), "score": round(random.uniform(0.6, 0.99), 3)}
                 for _ in range(random.randint(2, 5))
             ]
         }
@@ -106,9 +99,7 @@ def _mock_tool_execution(tool_name: str, arguments: dict) -> dict:
         success = random.random() > 0.15
         return {
             "status": "success" if success else "error",
-            "output": "\n".join(fake.sentence() for _ in range(random.randint(1, 4)))
-            if success
-            else fake.sentence(),
+            "output": "\n".join(fake.sentence() for _ in range(random.randint(1, 4))) if success else fake.sentence(),
         }
     elif tool_name == "query_database":
         return {
@@ -120,11 +111,7 @@ def _mock_tool_execution(tool_name: str, arguments: dict) -> dict:
     elif tool_name == "search_web":
         return {
             "results": [
-                {
-                    "title": fake.catch_phrase(),
-                    "snippet": fake.sentence(),
-                    "url": fake.url(),
-                }
+                {"title": fake.catch_phrase(), "snippet": fake.sentence(), "url": fake.url()}
                 for _ in range(random.randint(3, 6))
             ]
         }
@@ -178,29 +165,19 @@ def _mock_llm_call(messages: list, tools: list | None = None) -> dict:
     if output_size > MAX_SPAN_SIZE:
         span.log(
             input=messages,
-            output=JSONAttachment(
-                data=assistant_message, filename="completion.json", pretty=True
-            ),
+            output=JSONAttachment(data=assistant_message, filename="completion.json", pretty=True),
             metrics=metrics,
             metadata=metadata,
         )
     else:
-        span.log(
-            input=messages, output=assistant_message, metrics=metrics, metadata=metadata
-        )
+        span.log(input=messages, output=assistant_message, metrics=metrics, metadata=metadata)
 
     return {
         "id": f"chatcmpl-{fake.uuid4()[:8]}",
         "object": "chat.completion",
         "model": model,
-        "choices": [
-            {"index": 0, "message": assistant_message, "finish_reason": finish_reason}
-        ],
-        "usage": {
-            "prompt_tokens": prompt_tokens,
-            "completion_tokens": completion_tokens,
-            "total_tokens": prompt_tokens + completion_tokens,
-        },
+        "choices": [{"index": 0, "message": assistant_message, "finish_reason": finish_reason}],
+        "usage": {"prompt_tokens": prompt_tokens, "completion_tokens": completion_tokens, "total_tokens": prompt_tokens + completion_tokens},
     }
 
 
@@ -228,13 +205,11 @@ def mock_multiturn_conversation(query: str) -> dict:
                     tool_name = tool_call["function"]["name"]
                     arguments = json.loads(tool_call["function"]["arguments"])
                     tool_result = _mock_tool_execution(tool_name, arguments)
-                    follow_up_context.append(
-                        {
-                            "role": "tool",
-                            "tool_call_id": tool_call["id"],
-                            "content": json.dumps(tool_result),
-                        }
-                    )
+                    follow_up_context.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call["id"],
+                        "content": json.dumps(tool_result),
+                    })
                 follow_up = _mock_llm_call(follow_up_context)
                 final_message = follow_up["choices"][0]["message"]
             else:

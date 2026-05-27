@@ -146,7 +146,9 @@ def run(config: dict | None = None) -> bool:
         Eval(
             f"{config['evaltest']['name']}-eval",
             project_id=config["evaltest"]["project_id"],
-            data=init_dataset(project_id=dataset["project_id"], name=dataset["name"]),
+            data=init_dataset(
+                project_id=dataset["project_id"], name=dataset["name"]
+            ),
             task=mock_task,
             scores=[summary_levenshtein, sentiment_exact_match],
             trial_count=config["evaltest"]["trial_count"],
