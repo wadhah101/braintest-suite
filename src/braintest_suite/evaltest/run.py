@@ -8,7 +8,7 @@ fake = Faker()
 
 
 def create_project(config: dict) -> dict:
-    from util import http_client
+    from braintest_suite.util import http_client
 
     api_url = config["braintrust"]["api_url"]
     payload = {
@@ -28,7 +28,7 @@ def create_project(config: dict) -> dict:
 
 
 def initialize_dataset(config: dict) -> dict:
-    from util import http_client
+    from braintest_suite.util import http_client
 
     print(
         "Creating dataset. If dataset already exists, new rows will be appended to existing one."
@@ -74,7 +74,7 @@ def generate_event():
 
 
 def insert_events(config: dict, dataset_id: str, events: list):
-    from util import http_client
+    from braintest_suite.util import http_client
 
     print(f"Inserting batch of {len(events)} events to dataset")
 
@@ -116,7 +116,7 @@ def sentiment_exact_match(input, output: dict, expected: dict):
 def run(config: dict | None = None) -> bool:
     if config is None:
         from dotenv import load_dotenv
-        from config import load_config
+        from braintest_suite.config import load_config
 
         load_dotenv()
         config = load_config()

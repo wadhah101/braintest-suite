@@ -3,6 +3,9 @@ import signal
 import subprocess
 import sys
 from datetime import datetime
+from pathlib import Path
+
+_DEFAULT_LOCUSTFILE = str(Path(__file__).resolve().parent / "run.py")
 
 
 def run(config: dict) -> bool:
@@ -10,7 +13,7 @@ def run(config: dict) -> bool:
 
     loadtest_config = config.get("loadtest", {})
 
-    locustfile_path = loadtest_config.get("locustfile_path", "loadtest/run.py")
+    locustfile_path = loadtest_config.get("locustfile_path") or _DEFAULT_LOCUSTFILE
     headless = loadtest_config.get("headless", False)
     port = str(loadtest_config.get("web_ui_port", 8089))
     braintrust_config = config.get("braintrust", {})

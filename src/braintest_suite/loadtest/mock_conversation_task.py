@@ -4,7 +4,7 @@ import random
 from dotenv import load_dotenv
 from faker import Faker
 from braintrust import traced, current_span, start_span, JSONAttachment, init_logger
-from config import load_config
+from braintest_suite.config import load_config
 
 fake = Faker()
 

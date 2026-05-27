@@ -3,10 +3,10 @@ import requests
 import os
 import random
 from faker import Faker
-from loadtest.mock_conversation_task import mock_multiturn_conversation
-from loadtest.braintrust_http_metrics import BraintrustMetricsAdapter, BraintrustMetricsEmitter
-from config import load_config
-from util import http_client
+from braintest_suite.loadtest.mock_conversation_task import mock_multiturn_conversation
+from braintest_suite.loadtest.braintrust_http_metrics import BraintrustMetricsAdapter, BraintrustMetricsEmitter
+from braintest_suite.config import load_config
+from braintest_suite.util import http_client
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 

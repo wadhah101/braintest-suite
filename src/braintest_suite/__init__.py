@@ -6,7 +6,7 @@ import sys
 
 import click
 
-from config import load_config
+from braintest_suite.config import load_config
 
 AVAILABLE_SUITES = {
     "functional": "Functional API CRUD tests against Braintrust",
@@ -33,17 +33,17 @@ def _run_suite(name: str, config: dict) -> str:
     """Run a single test suite by name. Returns status string."""
     if name == "functional":
         click.echo("\n-----Running Functional Test-----")
-        from functional_test import run as run_fn
+        from braintest_suite.functional_test import run as run_fn
 
         return "SUCCESS" if run_fn(config) else "FAILED"
     elif name == "evaltest":
         click.echo("\n-----Running Eval Test-----")
-        from evaltest import run as run_fn
+        from braintest_suite.evaltest import run as run_fn
 
         return "SUCCESS" if run_fn(config) else "FAILED"
     elif name == "loadtest":
         click.echo("\n-----Running Locust Load Test-----")
-        from loadtest import run as run_fn
+        from braintest_suite.loadtest import run as run_fn
 
         return "SUCCESS" if run_fn(config) else "FAILED"
     else:
@@ -145,6 +145,8 @@ def list_suites():
         click.echo(f"  {name:<15} {description}")
 
 
+
+main = cli
 
 if __name__ == "__main__":
     cli()

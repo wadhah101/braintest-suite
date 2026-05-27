@@ -7,8 +7,8 @@ from urllib.parse import urlencode
 import requests
 from dotenv import load_dotenv
 
-from config import load_config
-from util import http_client
+from braintest_suite.config import load_config
+from braintest_suite.util import http_client
 
 
 @dataclass

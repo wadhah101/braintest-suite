@@ -2,7 +2,7 @@ import random
 import time
 from braintrust import traced, current_span, JSONAttachment, init_logger
 from faker import Faker
-from config import load_config
+from braintest_suite.config import load_config
 
 fake = Faker()
 
