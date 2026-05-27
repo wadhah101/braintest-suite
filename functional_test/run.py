@@ -5,6 +5,8 @@ from typing import Any
 from urllib.parse import urlencode
 
 import requests
+from dotenv import load_dotenv
+
 from config import load_config
 from util import http_client
 
@@ -906,6 +908,7 @@ class FunctionalTestRunner:
 
 
 def run() -> bool:
+    load_dotenv()
     config = load_config()
     runner = FunctionalTestRunner(config=config)
     return runner.run()

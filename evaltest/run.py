@@ -1,11 +1,13 @@
 import os
 from braintrust import init_logger, init_dataset, Eval
 from autoevals import Levenshtein, ExactMatch
+from dotenv import load_dotenv
 from faker import Faker
 import random
 from config import load_config
 from util import http_client
 
+load_dotenv()
 fake = Faker()
 
 config = load_config()

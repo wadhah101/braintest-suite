@@ -7,7 +7,11 @@ from loadtest.mock_conversation_task import mock_multiturn_conversation
 from loadtest.braintrust_http_metrics import BraintrustMetricsAdapter, BraintrustMetricsEmitter
 from config import load_config
 from util import http_client
+from dotenv import load_dotenv
 from urllib.parse import urlparse
+
+
+load_dotenv()
 
 fake = Faker()
 
