@@ -1,64 +1,55 @@
 import os
-from braintrust import init_logger, init_dataset, Eval
+from braintrust import init_dataset, Eval
 from autoevals import Levenshtein, ExactMatch
-from dotenv import load_dotenv
 from faker import Faker
 import random
-from config import load_config
-from util import http_client
 
-load_dotenv()
 fake = Faker()
 
-config = load_config()
 
+def create_project(config: dict) -> dict:
+    from util import http_client
 
-def create_project() -> str:
     api_url = config["braintrust"]["api_url"]
     payload = {
         "name": config["braintrust"]["project_name"],
-        "description": "Project for testing a large eval"
+        "description": "Project for testing a large eval",
     }
     headers = {
-        "Authorization": f"Bearer {os.getenv("BRAINTRUST_API_KEY")}",
+        "Authorization": f"Bearer {os.getenv('BRAINTRUST_API_KEY')}",
         "Content-Type": "application/json",
     }
-    
-    try:
-        response = http_client(
-            "post", url=f"{api_url}/v1/project", payload=payload, headers=headers
-        )
-        print(f"Project {response.json().get("name")} created/loaded successfully")
-    except Exception as e:
-        print(f"Fatal error while creating project: {e}")
-        exit(1)
 
+    response = http_client(
+        "post", url=f"{api_url}/v1/project", payload=payload, headers=headers
+    )
+    print(f"Project {response.json().get('name')} created/loaded successfully")
     return response.json()
 
 
-def initialize_dataset() -> dict:
-    print("Creating dataset. If dataset already exists, new rows will be appended to existing one.")
+def initialize_dataset(config: dict) -> dict:
+    from util import http_client
+
+    print(
+        "Creating dataset. If dataset already exists, new rows will be appended to existing one."
+    )
     api_url = config["braintrust"]["api_url"]
     project_id = config["evaltest"]["project_id"]
     dataset_config = config["evaltest"]["dataset"]
 
     payload = {
         "project_id": project_id,
-        "name": f"{config["evaltest"].get("name")}-dataset",
+        "name": f"{config['evaltest'].get('name')}-dataset",
         "description": dataset_config.get("description"),
     }
     headers = {
-        "Authorization": f"Bearer {os.getenv("BRAINTRUST_API_KEY")}",
+        "Authorization": f"Bearer {os.getenv('BRAINTRUST_API_KEY')}",
         "Content-Type": "application/json",
     }
-    try:
-        response = http_client(
-            "post", url=f"{api_url}/v1/dataset", payload=payload, headers=headers
-        )
-    except Exception as e:
-        print(f"Fatal error while creating dataset: {e}")
-        exit(1)
 
+    response = http_client(
+        "post", url=f"{api_url}/v1/dataset", payload=payload, headers=headers
+    )
     return response.json()
 
 
@@ -82,26 +73,25 @@ def generate_event():
     }
 
 
-def insert_events(dataset_id: str, events: list):
+def insert_events(config: dict, dataset_id: str, events: list):
+    from util import http_client
+
     print(f"Inserting batch of {len(events)} events to dataset")
 
     api_url = config["braintrust"]["api_url"]
 
     payload = {"events": events}
     headers = {
-        "Authorization": f"Bearer {os.getenv("BRAINTRUST_API_KEY")}",
+        "Authorization": f"Bearer {os.getenv('BRAINTRUST_API_KEY')}",
         "Content-Type": "application/json",
     }
-    try:
-        response = http_client(
-            method="post",
-            url=f"{api_url}/v1/dataset/{dataset_id}/insert",
-            payload=payload,
-            headers=headers,
-        )
-    except Exception as e:
-        print(f"Fatal error: {e}")
-        exit(1)
+
+    http_client(
+        method="post",
+        url=f"{api_url}/v1/dataset/{dataset_id}/insert",
+        payload=payload,
+        headers=headers,
+    )
 
 
 def mock_task(input: dict) -> dict:
@@ -123,40 +113,52 @@ def sentiment_exact_match(input, output: dict, expected: dict):
     )
 
 
-def run():
+def run(config: dict | None = None) -> bool:
+    if config is None:
+        from dotenv import load_dotenv
+        from config import load_config
 
-    if config["evaltest"].get("project_id") == None:
-        print("No project provided, one will be created")
-        project_details = create_project()
-        config["evaltest"]["project_id"] = project_details["id"]
+        load_dotenv()
+        config = load_config()
 
-    dataset = initialize_dataset()
+    try:
+        if config["evaltest"].get("project_id") is None:
+            print("No project provided, one will be created")
+            project_details = create_project(config)
+            config["evaltest"]["project_id"] = project_details["id"]
 
-    dataset_size = config["evaltest"]["dataset"]["size"]
-    flush_batch_size = config["evaltest"]["dataset"]["flush_batch_size"]
-    event_queue = []
+        dataset = initialize_dataset(config)
 
-    # Insert mock events into dataset
-    for _ in range(dataset_size):
-        mock_event = generate_event()
-        event_queue.append(mock_event)
-        if len(event_queue) == flush_batch_size:
-            insert_events(dataset_id=dataset["id"], events=event_queue)
+        dataset_size = config["evaltest"]["dataset"]["size"]
+        flush_batch_size = config["evaltest"]["dataset"]["flush_batch_size"]
+        event_queue = []
+
+        for _ in range(dataset_size):
+            mock_event = generate_event()
+            event_queue.append(mock_event)
+            if len(event_queue) == flush_batch_size:
+                insert_events(config, dataset_id=dataset["id"], events=event_queue)
+                event_queue.clear()
+        if len(event_queue) > 0:
+            insert_events(config, dataset_id=dataset["id"], events=event_queue)
             event_queue.clear()
-    if len(event_queue) > 0:
-        insert_events(dataset_id=dataset["id"], events=event_queue)
-        event_queue.clear()
 
-    # Execute eval on this dataset
-    Eval(
-        f"{config["evaltest"]["name"]}-eval",
-        project_id=config["evaltest"]["project_id"],
-        data=init_dataset(project_id=dataset["project_id"], name=dataset["name"]),
-        task=mock_task,
-        scores=[summary_levenshtein, sentiment_exact_match],
-        trial_count=config["evaltest"]["trial_count"]
-    )
+        Eval(
+            f"{config['evaltest']['name']}-eval",
+            project_id=config["evaltest"]["project_id"],
+            data=init_dataset(
+                project_id=dataset["project_id"], name=dataset["name"]
+            ),
+            task=mock_task,
+            scores=[summary_levenshtein, sentiment_exact_match],
+            trial_count=config["evaltest"]["trial_count"],
+        )
+        return True
+    except Exception as e:
+        print(f"Evaltest failed: {e}")
+        return False
 
 
 if __name__ == "__main__":
-    run()
+    success = run()
+    raise SystemExit(0 if success else 1)

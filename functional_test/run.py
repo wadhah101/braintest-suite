@@ -907,9 +907,10 @@ class FunctionalTestRunner:
 
 
 
-def run() -> bool:
-    load_dotenv()
-    config = load_config()
+def run(config: dict | None = None) -> bool:
+    if config is None:
+        load_dotenv()
+        config = load_config()
     runner = FunctionalTestRunner(config=config)
     return runner.run()
 
