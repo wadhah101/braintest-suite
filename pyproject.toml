@@ -1,7 +1,7 @@
 [project]
 name = "braintest-suite"
 version = "0.1.0"
-description = "Add your description here"
+description = "braintrust test suite"
 readme = "README.md"
 authors = []
 requires-python = ">=3.13, <3.14 "
