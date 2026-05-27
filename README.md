@@ -32,7 +32,7 @@ Each test is highly configurable via the `braintest.yaml` config file. The tests
    source .venv/bin/activate
    ```
 
-4. Set required environment variables (e.g. `BRAINTRUST_API_KEY`). How you set them is up to you — export them directly, use your shell profile, or any secrets manager your environment provides.
+4. Create a `.env` file (see `example.env` for reference)
 
 5. Configure `braintest.yaml` with your environment details and test parameters.
 
