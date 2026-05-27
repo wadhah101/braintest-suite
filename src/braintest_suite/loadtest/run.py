@@ -1,15 +1,19 @@
-from locust import HttpUser, task, between, constant_pacing, events
-import requests
 import os
 import random
-from faker import Faker
-from braintest_suite.loadtest.mock_conversation_task import mock_multiturn_conversation
-from braintest_suite.loadtest.braintrust_http_metrics import BraintrustMetricsAdapter, BraintrustMetricsEmitter
-from braintest_suite.config import load_config
-from braintest_suite.util import http_client
-from dotenv import load_dotenv
 from urllib.parse import urlparse
 
+import requests
+from dotenv import load_dotenv
+from faker import Faker
+from locust import HttpUser, between, constant_pacing, events, task
+
+from braintest_suite.config import load_config
+from braintest_suite.loadtest.braintrust_http_metrics import (
+    BraintrustMetricsAdapter,
+    BraintrustMetricsEmitter,
+)
+from braintest_suite.loadtest.mock_conversation_task import mock_multiturn_conversation
+from braintest_suite.util import http_client
 
 load_dotenv()
 
@@ -78,6 +82,7 @@ def _flush_braintrust_logger(environment, **kwargs):
     if environment.runner and environment.runner.__class__.__name__ == "MasterRunner":
         return
     from braintrust import flush
+
     try:
         flush()
     finally:
@@ -89,8 +94,12 @@ def _flush_braintrust_logger(environment, **kwargs):
 
 _read_traffic_config = config["loadtest"]["params"]["read_traffic"]
 _read_peak_concurrency = max(0, int(_read_traffic_config.get("peak_concurrency", 0)))
-_read_btql_calls_per_min = float(_read_traffic_config.get("btql_calls_per_min", 20) or 20)
-_read_effective_limit_per_user = _read_btql_calls_per_min / max(_read_peak_concurrency, 1)
+_read_btql_calls_per_min = float(
+    _read_traffic_config.get("btql_calls_per_min", 20) or 20
+)
+_read_effective_limit_per_user = _read_btql_calls_per_min / max(
+    _read_peak_concurrency, 1
+)
 _read_pacing_seconds = 60 / max(_read_effective_limit_per_user, 0.01)
 
 
