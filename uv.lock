@@ -590,7 +590,6 @@ dependencies = [
     { name = "faker" },
     { name = "locust" },
     { name = "pydantic-settings", extra = ["yaml"] },
-    { name = "python-dotenv" },
     { name = "pyyaml" },
 ]
 
@@ -601,7 +600,6 @@ requires-dist = [
     { name = "faker", specifier = ">=40.1.2" },
     { name = "locust", specifier = ">=2.43.2" },
     { name = "pydantic-settings", extras = ["yaml"], specifier = ">=2.6.0" },
-    { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "pyyaml", specifier = ">=6.0.3" },
 ]
 

@@ -2,7 +2,6 @@ import json
 import os
 import random
 import yaml
-from dotenv import load_dotenv
 from faker import Faker
 from braintrust import traced, current_span, start_span, JSONAttachment, init_logger
 
@@ -237,8 +236,6 @@ def mock_multiturn_conversation(query: str) -> dict:
 
 
 if __name__ == "__main__":
-    load_dotenv()
-
     logger = init_logger(
         project=config["braintrust"]["project_name"],
         api_key=os.getenv("BRAINTRUST_API_KEY"),
