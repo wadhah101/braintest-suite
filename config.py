@@ -92,5 +92,14 @@ class Settings(BaseSettings):
         )
 
 
-def load_config() -> dict:
+def load_config(yaml_file: str = "braintest.yaml") -> dict:
+    if yaml_file != "braintest.yaml":
+
+        class _Settings(Settings):
+            model_config = SettingsConfigDict(
+                yaml_file=yaml_file,
+                env_nested_delimiter="__",
+            )
+
+        return _Settings().model_dump(by_alias=True)
     return Settings().model_dump(by_alias=True)

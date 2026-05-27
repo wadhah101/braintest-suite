@@ -6,11 +6,9 @@ A load testing suite for running benchmarks on self-hosted Braintrust data plane
 
 This suite currently supports three types of tests:
 
-- **Load Test**: Spawns simulated users to bombard the data plane with logs, simulating production traffic
-
-- **Large Eval Test**: Generates a large synthetic dataset and runs an eval against it
-
-- **Functional Test**: Exercises core API create/read/delete flows across key Braintrust resources
+- **Functional Test** (`functional`): Exercises core API create/read/delete flows across key Braintrust resources
+- **Eval Test** (`evaltest`): Generates a large synthetic dataset and runs an eval against it
+- **Load Test** (`loadtest`): Spawns simulated users to bombard the data plane with logs, simulating production traffic
 
 The suite can be extended to support additional test types in the future, and that is a goal.
 
@@ -27,28 +25,50 @@ Each test is highly configurable via the `braintest.yaml` config file. The tests
    ```bash
    uv sync
    ```
-3. Activate the virtual env uv creates if it isn't already activated
+
+3. Create a `.env` file (see `example.env` for reference)
+
+4. Configure `braintest.yaml` with your environment details and test parameters.
+
+5. Run the test suite:
    ```bash
-   source .venv/bin/activate
+   uv run braintest
    ```
 
-4. Create a `.env` file (see `example.env` for reference)
+## CLI Usage
 
-5. Configure `braintest.yaml` with your environment details and test parameters.
+The `braintest` CLI is the main entry point. Running it with no arguments executes all suites that are enabled in `braintest.yaml`.
 
-6. Execute the test suite:
-   ```bash
-   python main.py
-   ```
+```bash
+# Run all enabled test suites (default behavior)
+uv run braintest
 
-7. If you are running over SSH on a remote server, use `nohup` so the test keeps running if your session disconnects:
-   ```bash
-   nohup python main.py &
-   ```
-   This will write output to a default log file. To write `nohup` output to a specific file:
-   ```bash
-   nohup python main.py > loadtest.out 2>&1 &
-   ```
+# List available test suites
+uv run braintest list
+
+# Run specific suites (ignores the 'run' flag in config)
+uv run braintest run functional
+uv run braintest run functional evaltest
+uv run braintest run loadtest
+
+# Use a different config file
+uv run braintest --config-file custom.yaml
+uv run braintest --config-file custom.yaml run loadtest
+```
+
+Each test suite is also runnable as a standalone Python module:
+
+```bash
+uv run python -m functional_test
+uv run python -m evaltest
+uv run python -m loadtest
+```
+
+If you are running over SSH on a remote server, use `nohup` so the test keeps running if your session disconnects:
+
+```bash
+nohup uv run braintest > braintest.out 2>&1 &
+```
 
 ## Configuration
 
@@ -66,7 +86,7 @@ To override any config value via environment variable, use `__` (double undersco
 
 Example:
 ```bash
-BRAINTRUST__API_URL=https://my-api.example.com LOADTEST__PROCESSES=8 python main.py
+BRAINTRUST__API_URL=https://my-api.example.com LOADTEST__PROCESSES=8 uv run braintest
 ```
 
 ## Important Notes

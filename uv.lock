@@ -587,9 +587,11 @@ source = { virtual = "." }
 dependencies = [
     { name = "autoevals" },
     { name = "braintrust" },
+    { name = "click" },
     { name = "faker" },
     { name = "locust" },
     { name = "pydantic-settings", extra = ["yaml"] },
+    { name = "python-dotenv" },
     { name = "pyyaml" },
 ]
 
@@ -597,9 +599,11 @@ dependencies = [
 requires-dist = [
     { name = "autoevals", specifier = ">=0.0.130" },
     { name = "braintrust", specifier = ">=0.10.0" },
+    { name = "click", specifier = ">=8.1.0" },
     { name = "faker", specifier = ">=40.1.2" },
     { name = "locust", specifier = ">=2.43.2" },
     { name = "pydantic-settings", extras = ["yaml"], specifier = ">=2.6.0" },
+    { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "pyyaml", specifier = ">=6.0.3" },
 ]
 
