@@ -5,9 +5,7 @@ from typing import Any
 from urllib.parse import urlencode
 
 import requests
-import yaml
-from dotenv import load_dotenv
-
+from config import load_config
 from util import http_client
 
 
@@ -905,19 +903,9 @@ class FunctionalTestRunner:
         )
 
 
-def load_config() -> dict[str, Any]:
-    with open("./braintest.yaml", "r") as file_handle:
-        loaded = yaml.safe_load(file_handle)
-    if not isinstance(loaded, dict):
-        print(
-            "[functionaltest] braintest.yaml did not parse to an object. Using empty config."
-        )
-        return {}
-    return loaded
 
 
 def run() -> bool:
-    load_dotenv()
     config = load_config()
     runner = FunctionalTestRunner(config=config)
     return runner.run()
