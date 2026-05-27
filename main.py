@@ -3,18 +3,13 @@
 Main script to orchestrate functionaltest, evaltest, and loadtest execution
 based on braintest.yaml config.
 """
-import yaml
 import subprocess
 import sys
 import os
 import signal
 from datetime import datetime
 
-
-def load_config(config_path="braintest.yaml"):
-    with open(config_path, "r") as f:
-        config = yaml.safe_load(f)
-    return config
+from config import load_config
 
 
 def run_evaltest(config):
@@ -251,9 +246,6 @@ def main():
 
     except FileNotFoundError as e:
         print(f"Error: Configuration file not found - {e}")
-        sys.exit(1)
-    except yaml.YAMLError as e:
-        print(f"Error: Failed to parse YAML configuration - {e}")
         sys.exit(1)
     except Exception as e:
         print(f"Fatal error: {e}")

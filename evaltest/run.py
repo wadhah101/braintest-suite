@@ -2,21 +2,13 @@ import os
 from braintrust import init_logger, init_dataset, Eval
 from autoevals import Levenshtein, ExactMatch
 from dotenv import load_dotenv
-import yaml
 from faker import Faker
 import random
+from config import load_config
 from util import http_client
 
+load_dotenv()
 fake = Faker()
-
-
-def load_config() -> dict:
-    load_dotenv()
-    with open("./braintest.yaml", "r") as f:
-        config = yaml.safe_load(f)
-
-    return config
-
 
 config = load_config()
 

@@ -2,10 +2,10 @@ from locust import HttpUser, task, between, constant_pacing, events
 import requests
 import os
 import random
-import yaml
 from faker import Faker
 from loadtest.mock_conversation_task import mock_multiturn_conversation
 from loadtest.braintrust_http_metrics import BraintrustMetricsAdapter, BraintrustMetricsEmitter
+from config import load_config
 from util import http_client
 from dotenv import load_dotenv
 from urllib.parse import urlparse
@@ -14,12 +14,6 @@ from urllib.parse import urlparse
 load_dotenv()
 
 fake = Faker()
-
-
-def load_config():
-    with open("./braintest.yaml", "r") as f:
-        config = yaml.safe_load(f)
-    return config
 
 
 config = load_config()
