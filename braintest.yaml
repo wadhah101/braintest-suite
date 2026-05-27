@@ -1,6 +1,6 @@
 braintrust:
   project_name: load-testing-project
-  api_url: https://braintrust-experimentation-api-ml-training-staging-nl-gcp.internal.doctolibdata.com
+  api_url: https://api.braintrust.dev
 
 functionaltest:
   run: True # Whether or not to run this test
