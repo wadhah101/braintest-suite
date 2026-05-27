@@ -8,6 +8,7 @@ from pathlib import Path
 _DEFAULT_LOCUSTFILE = str(Path(__file__).resolve().parent / "run.py")
 
 
+
 def run(config: dict) -> bool:
     print("Load Test")
 
