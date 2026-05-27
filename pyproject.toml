@@ -26,6 +26,7 @@ packages = ["evaltest", "functional_test", "loadtest"]
 "main.py" = "main.py"
 "config.py" = "config.py"
 "util.py" = "util.py"
+"braintest.yaml" = "braintest.yaml"
 
 [project.scripts]
 braintest = "main:cli"

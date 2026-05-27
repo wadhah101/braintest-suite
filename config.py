@@ -1,5 +1,9 @@
+from pathlib import Path
+
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict, YamlConfigSettingsSource
+
+_BUNDLED_CONFIG = Path(__file__).resolve().parent / "braintest.yaml"
 
 
 class BraintrustConfig(BaseModel):
@@ -92,14 +96,23 @@ class Settings(BaseSettings):
         )
 
 
+def _resolve_yaml(yaml_file: str) -> Path:
+    """Return the yaml path, falling back to the bundled default."""
+    local = Path(yaml_file)
+    if local.exists():
+        return local
+    if _BUNDLED_CONFIG.exists():
+        return _BUNDLED_CONFIG
+    return local  # let pydantic-settings raise the error
+
+
 def load_config(yaml_file: str = "braintest.yaml") -> dict:
-    if yaml_file != "braintest.yaml":
+    resolved = _resolve_yaml(yaml_file)
 
-        class _Settings(Settings):
-            model_config = SettingsConfigDict(
-                yaml_file=yaml_file,
-                env_nested_delimiter="__",
-            )
+    class _Settings(Settings):
+        model_config = SettingsConfigDict(
+            yaml_file=str(resolved),
+            env_nested_delimiter="__",
+        )
 
-        return _Settings().model_dump(by_alias=True)
-    return Settings().model_dump(by_alias=True)
+    return _Settings().model_dump(by_alias=True)
