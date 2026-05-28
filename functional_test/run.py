@@ -1,5 +1,6 @@
 import os
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlencode
@@ -91,30 +92,37 @@ class FunctionalTestRunner:
             return False
 
         try:
-            self._run_core_sequence()
+            self.run_core_sequence()
         finally:
             self._cleanup_resources()
             self._print_summary()
 
         return not any(record.status == "FAIL" for record in self._records)
 
-    def _run_core_sequence(self) -> None:
-        self._create_and_read_project()
-        self._insert_and_fetch_project_logs()
-        self._create_and_read_role()
-        self._create_and_read_group()
-        self._create_and_read_dataset()
-        self._create_and_read_experiment()
-        self._create_and_read_prompt()
-        self._create_and_read_acl()
-        self._create_and_read_project_automation()
-        self._create_and_read_project_score()
-        self._create_and_read_project_tag()
-        self._create_and_read_function()
-        self._create_and_read_view()
-        self._create_and_read_api_key()
-        self._create_and_read_env_var()
-        self._create_and_read_environment()
+    @property
+    def core_steps(self) -> list[Callable[[], None]]:
+        return [
+            self._create_and_read_project,
+            self._insert_and_fetch_project_logs,
+            self._create_and_read_role,
+            self._create_and_read_group,
+            self._create_and_read_dataset,
+            self._create_and_read_experiment,
+            self._create_and_read_prompt,
+            self._create_and_read_acl,
+            self._create_and_read_project_automation,
+            self._create_and_read_project_score,
+            self._create_and_read_project_tag,
+            self._create_and_read_function,
+            self._create_and_read_view,
+            self._create_and_read_api_key,
+            self._create_and_read_env_var,
+            self._create_and_read_environment,
+        ]
+
+    def run_core_sequence(self) -> None:
+        for step in self.core_steps:
+            step()
 
     def _create_and_read_project(self) -> None:
         payload: dict[str, Any] = {
