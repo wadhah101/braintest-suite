@@ -33,7 +33,7 @@ uv sync
 uv pip install git+<repo-url>
 ```
 
-A default `braintest.yaml` is bundled with the package. If a local `braintest.yaml` exists in the working directory it takes precedence; otherwise the bundled defaults are used.
+A `braintest.yaml` file is expected in the current working directory by default. You can override this with `--config-file path/to/config.yaml`.
 
 ## Getting Started
 
@@ -41,30 +41,32 @@ A default `braintest.yaml` is bundled with the package. If a local `braintest.ya
 
 2. Configure `braintest.yaml` with your environment details and test parameters.
 
-3. Run the test suite:
+3. Run a test suite:
    ```bash
-   braintest
+   braintest run all
    ```
 
 ## CLI Usage
 
-The `braintest` CLI is the main entry point. Running it with no arguments executes all suites that are enabled in `braintest.yaml`.
+The `braintest` CLI is the main entry point. Running it with no arguments shows help. Use `run` to execute suites.
 
 ```bash
-# Run all enabled test suites (default behavior)
+# Show help
 braintest
 
 # List available test suites
 braintest list
 
-# Run specific suites (ignores the 'run' flag in config)
+# Run specific suites
 braintest run functional
 braintest run functional evaltest
 braintest run loadtest
+braintest run all
 
 # Use a different config file
-braintest --config-file custom.yaml
 braintest --config-file custom.yaml run loadtest
+braintest run --config-file custom.yaml loadtest
+braintest run --config-file custom.yaml all
 ```
 
 Each test suite is also runnable as a standalone Python module:
@@ -78,7 +80,7 @@ python -m braintest_suite.loadtest
 If you are running over SSH on a remote server, use `nohup` so the test keeps running if your session disconnects:
 
 ```bash
-nohup braintest > braintest.out 2>&1 &
+nohup braintest run all > braintest.out 2>&1 &
 ```
 
 ## Configuration
@@ -97,7 +99,7 @@ To override any config value via environment variable, use `__` (double undersco
 
 Example:
 ```bash
-BRAINTRUST__API_URL=https://my-api.example.com LOADTEST__PROCESSES=8 uv run braintest
+BRAINTRUST__API_URL=https://my-api.example.com LOADTEST__PROCESSES=8 uv run braintest run loadtest
 ```
 
 ## Important Notes

@@ -17,7 +17,6 @@ class BraintrustConfig(StrictBaseModel):
 
 
 class FunctionalTestConfig(StrictBaseModel):
-    run: bool
     name_prefix: str
 
 
@@ -29,7 +28,6 @@ class DatasetConfig(StrictBaseModel):
 
 
 class EvalTestConfig(StrictBaseModel):
-    run: bool
     project_id: str | None
     name: str
     trial_count: int
@@ -70,7 +68,6 @@ class LogsConfig(StrictBaseModel):
 
 
 class LoadTestConfig(StrictBaseModel):
-    run: bool
     headless: bool
     web_ui_port: int
     processes: int

@@ -17,12 +17,6 @@ AVAILABLE_SUITES = {
     "loadtest": "Locust-based load test with concurrent users",
 }
 
-CONFIG_KEY_MAP = {
-    "functional": "functionaltest",
-    "evaltest": "evaltest",
-    "loadtest": "loadtest",
-}
-
 
 def _load_config() -> dict:
     try:
@@ -65,7 +59,7 @@ def _print_results(results: dict):
         click.echo(f"{test_name}: {status}")
 
 
-@click.group(invoke_without_command=True)
+@click.group()
 @click.option(
     "--config-file",
     default=None,
@@ -75,45 +69,23 @@ def _print_results(results: dict):
 def cli(ctx, config_file):
     """Braintest - test suite runner for Braintrust.
 
-    Run with no arguments to execute all enabled test suites.
     Use 'braintest run <suite> ...' to run specific suites.
+    Use 'braintest run all' to run every suite.
     Use 'braintest list' to see available suites.
     """
     ctx.ensure_object(dict)
-    resolved_config = config_file or "braintest.yaml"
-    ctx.obj["config_file"] = resolved_config
-    os.environ["BRAINTEST_CONFIG_FILE"] = resolved_config
-    click.echo(f'Using config file "{resolved_config}"')
-
-    if ctx.invoked_subcommand is not None:
-        return
-
-    # Default: run all enabled suites
-    config = _load_config()
-    results = {}
-
-    click.echo("=" * 50)
-    click.echo("Braintest")
-    click.echo("=" * 50 + "\n")
-
-    for name in AVAILABLE_SUITES:
-        config_key = CONFIG_KEY_MAP[name]
-        if config.get(config_key, {}).get("run", False):
-            results[name] = _run_suite(name, config)
-        else:
-            click.echo(f"\n{name} is not enabled in config. Skipping...")
-            results[name] = "SKIPPED"
-
-    _print_results(results)
-
-    has_failure = any(s == "FAILED" for s in results.values())
-    sys.exit(1 if has_failure else 0)
+    ctx.obj["config_file"] = config_file
 
 
 @cli.command("run")
+@click.option(
+    "--config-file",
+    default=None,
+    help="Path to the YAML configuration file.",
+)
 @click.argument("suites", nargs=-1, required=True)
 @click.pass_context
-def run_suites(ctx, suites):
+def run_suites(ctx, config_file, suites):
     """Run specific test suites by name.
 
     Examples:
@@ -122,13 +94,33 @@ def run_suites(ctx, suites):
 
         braintest run functional evaltest
 
+        braintest run all
+
         braintest run loadtest
+
+        braintest run --config-file custom.yaml loadtest
     """
-    invalid = [s for s in suites if s not in AVAILABLE_SUITES]
-    if invalid:
-        click.echo(f"Error: Unknown suite(s): {', '.join(invalid)}", err=True)
-        click.echo(f"Available: {', '.join(AVAILABLE_SUITES.keys())}", err=True)
-        sys.exit(1)
+    resolved_config = config_file or ctx.obj.get("config_file") or "braintest.yaml"
+    os.environ["BRAINTEST_CONFIG_FILE"] = resolved_config
+    click.echo(f'Using config file "{resolved_config}"')
+
+    if "all" in suites:
+        if len(suites) > 1:
+            click.echo(
+                "Error: 'all' cannot be combined with other suite names.",
+                err=True,
+            )
+            sys.exit(1)
+        selected_suites = list(AVAILABLE_SUITES.keys())
+    else:
+        invalid = [s for s in suites if s not in AVAILABLE_SUITES]
+        if invalid:
+            click.echo(f"Error: Unknown suite(s): {', '.join(invalid)}", err=True)
+            click.echo(f"Available: {', '.join(AVAILABLE_SUITES.keys())}", err=True)
+            sys.exit(1)
+
+        # Preserve user order while removing duplicates.
+        selected_suites = list(dict.fromkeys(suites))
 
     config = _load_config()
     results = {}
@@ -137,7 +129,7 @@ def run_suites(ctx, suites):
     click.echo("Braintest")
     click.echo("=" * 50 + "\n")
 
-    for name in suites:
+    for name in selected_suites:
         results[name] = _run_suite(name, config)
 
     _print_results(results)
