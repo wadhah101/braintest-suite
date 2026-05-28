@@ -1,90 +1,95 @@
+import os
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict, YamlConfigSettingsSource
 
-_BUNDLED_CONFIG = Path(__file__).resolve().parent / "braintest.yaml"
+_CONFIG_FILE_ENV = "BRAINTEST_CONFIG_FILE"
 
 
-class BraintrustConfig(BaseModel):
-    project_name: str = "load-testing-project"
-    api_url: str = ""
+class StrictBaseModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
 
 
-class FunctionalTestConfig(BaseModel):
-    run: bool = False
-    name_prefix: str = "functional-test"
+class BraintrustConfig(StrictBaseModel):
+    project_name: str
+    api_url: str
 
 
-class DatasetConfig(BaseModel):
-    name: str = "test-large-dataset"
-    description: str = ""
-    size: int = 100
-    flush_batch_size: int = 25
+class FunctionalTestConfig(StrictBaseModel):
+    run: bool
+    name_prefix: str
 
 
-class EvalTestConfig(BaseModel):
-    run: bool = False
-    project_id: str | None = None
-    name: str = "test-large"
-    trial_count: int = 1
-    dataset: DatasetConfig = DatasetConfig()
+class DatasetConfig(StrictBaseModel):
+    name: str
+    description: str
+    size: int
+    flush_batch_size: int
 
 
-class WaitTimeConfig(BaseModel):
-    min: int = 5
-    max: int = 10
+class EvalTestConfig(StrictBaseModel):
+    run: bool
+    project_id: str | None
+    name: str
+    trial_count: int
+    dataset: DatasetConfig
 
 
-class ReadTrafficConfig(BaseModel):
-    peak_concurrency: int = 2
-    btql_calls_per_min: float = 10
+class WaitTimeConfig(StrictBaseModel):
+    min: int
+    max: int
 
 
-class LoadTestParams(BaseModel):
-    faker_pool_size: int = 20
-    max_tokens: int = 1000
-    peak_concurrency: int = 20
-    ramp_up: int = 2
-    run_time: str = "1m"
-    wait_time: WaitTimeConfig = WaitTimeConfig()
-    read_traffic: ReadTrafficConfig = ReadTrafficConfig()
+class ReadTrafficConfig(StrictBaseModel):
+    peak_concurrency: int
+    btql_calls_per_min: float
 
 
-class BraintrustLoggerConfig(BaseModel):
-    flush_size: int = 100
-    queue_size: int = 25000
+class LoadTestParams(StrictBaseModel):
+    faker_pool_size: int
+    max_tokens: int
+    peak_concurrency: int
+    ramp_up: int
+    run_time: str
+    wait_time: WaitTimeConfig
+    read_traffic: ReadTrafficConfig
 
 
-class LogsConfig(BaseModel):
-    model_config = {"populate_by_name": True}
-
-    html: bool = True
-    csv: bool = False
-    json_log: bool = Field(False, alias="json")
+class BraintrustLoggerConfig(StrictBaseModel):
+    flush_size: int
+    queue_size: int
 
 
-class LoadTestConfig(BaseModel):
-    run: bool = False
-    headless: bool = False
-    web_ui_port: int = 8089
-    processes: int = 4
-    connection_pool_size: int = 10
-    braintrust_logger: BraintrustLoggerConfig = BraintrustLoggerConfig()
-    params: LoadTestParams = LoadTestParams()
-    logs: LogsConfig = LogsConfig()
+class LogsConfig(StrictBaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    html: bool
+    csv: bool
+    json_log: bool = Field(alias="json")
+
+
+class LoadTestConfig(StrictBaseModel):
+    run: bool
+    headless: bool
+    web_ui_port: int
+    processes: int
+    connection_pool_size: int
+    braintrust_logger: BraintrustLoggerConfig
+    params: LoadTestParams
+    logs: LogsConfig
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        yaml_file="braintest.yaml",
         env_nested_delimiter="__",
+        extra="forbid",
     )
 
-    braintrust: BraintrustConfig = BraintrustConfig()
-    functionaltest: FunctionalTestConfig = FunctionalTestConfig()
-    evaltest: EvalTestConfig = EvalTestConfig()
-    loadtest: LoadTestConfig = LoadTestConfig()
+    braintrust: BraintrustConfig
+    functionaltest: FunctionalTestConfig
+    evaltest: EvalTestConfig
+    loadtest: LoadTestConfig
 
     @classmethod
     def settings_customise_sources(cls, settings_cls, **kwargs):
@@ -95,23 +100,26 @@ class Settings(BaseSettings):
         )
 
 
-def _resolve_yaml(yaml_file: str) -> Path:
-    """Return the yaml path, falling back to the bundled default."""
-    local = Path(yaml_file)
+def _resolve_yaml() -> Path:
+    """Return the config path from env, or project-root braintest.yaml."""
+    env_config_file = os.getenv(_CONFIG_FILE_ENV)
+    candidate = env_config_file or "braintest.yaml"
+
+    local = Path(candidate)
     if local.exists():
         return local
-    if _BUNDLED_CONFIG.exists():
-        return _BUNDLED_CONFIG
-    return local  # let pydantic-settings raise the error
+
+    raise FileNotFoundError(candidate)
 
 
-def load_config(yaml_file: str = "braintest.yaml") -> dict:
-    resolved = _resolve_yaml(yaml_file)
+def load_config() -> dict:
+    resolved = _resolve_yaml()
 
     class _Settings(Settings):
         model_config = SettingsConfigDict(
             yaml_file=str(resolved),
             env_nested_delimiter="__",
+            extra="forbid",
         )
 
     return _Settings().model_dump(by_alias=True)
