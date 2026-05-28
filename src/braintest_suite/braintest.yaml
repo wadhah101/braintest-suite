@@ -19,7 +19,6 @@ evaltest:
 
 loadtest:
   run: True # Whether or not to run this test
-  locustfile_path: loadtest/run.py # Only modify if you change the file name or path for whatever reason
   headless: False # Run the test without the web UI. This will log stats periodically to console
   web_ui_port: 8089 # Port at which to run the locust UI on localhost. Only modify if you already have a service running on the default
   processes: 4 # Number of worker processes to spawn (logical CPUs)

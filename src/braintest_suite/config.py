@@ -66,7 +66,6 @@ class LogsConfig(BaseModel):
 
 class LoadTestConfig(BaseModel):
     run: bool = False
-    locustfile_path: str = "loadtest/run.py"
     headless: bool = False
     web_ui_port: int = 8089
     processes: int = 4
